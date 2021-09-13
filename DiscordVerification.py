@@ -155,5 +155,5 @@ async def verify(user):
     var = discord.utils.get(guild.roles, name="Verified")
     await member.add_roles(var)
 
-
-client.run(TOKEN)
+if __name__ == "__main__":
+    client.run(TOKEN)
