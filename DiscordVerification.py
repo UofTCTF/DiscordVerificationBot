@@ -152,7 +152,7 @@ def get_guild():
 async def verify(user):
     guild = get_guild()
     member = guild.get_member(user.id)
-    var = discord.utils.get(guild.roles, name="Normies")
+    var = discord.utils.get(guild.roles, name="Verified")
     await member.add_roles(var)
 
 
