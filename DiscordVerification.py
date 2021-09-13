@@ -36,11 +36,14 @@ client = discord.Client(intents=intents)
 
 @client.event
 async def on_member_join(member):
+    await member.send("To gain access to the server, please verify your UofT email. \n"
+                      "Enter '!email' followed by your UofT email, or '!help' for more commands.")
     await initiate(member)
 
 
 @client.event
 async def on_ready():
+    print("Ready")
     pass
 
 
@@ -50,7 +53,8 @@ async def on_message(message):
         return
 
     if not user_exists(str(message.author.id)):
-        await message.author.send('You do not seem to be a member of UofTCTF. Please join and try again.')
+        await initiate(message.author)
+        # await message.author.send('You do not seem to be a member of UofTCTF. Please join and try again.')
 
     if message.content[:7] == "!email ":
         email = message.content.split(' ')[1].strip()
@@ -118,8 +122,6 @@ def store_email(user_id, email):
 
 
 async def initiate(member):
-    await member.send("To gain access to the server, please verify your UofT email. \n"
-                      "Enter '!email' followed by your UofT email, or '!help' for more commands.")
     if not user_exists(str(member.id)):
         query = db.insert(users).values(id=member.id, code=randrange(100000, 1000000))
         connection.execute(query)
@@ -134,10 +136,10 @@ def log():
 
 
 def send_email(email, code):
-    context = ssl.create_default_context()
+    context = ssl._create_unverified_context()
     try:
         server = smtplib.SMTP(SERVER, PORT)
-        server.starttls(context=context)  # Secure the connection
+        server.starttls(context=context)
         server.login(SENDER, PASSWORD)
         server.sendmail(SENDER, email, f"Your verification code is: {code}")
         return True
@@ -157,6 +159,7 @@ async def verify(user):
     member = guild.get_member(user.id)
     var = discord.utils.get(guild.roles, name="Verified")
     await member.add_roles(var)
+
 
 if __name__ == "__main__":
     client.run(TOKEN)
