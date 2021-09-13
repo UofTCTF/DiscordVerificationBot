@@ -2,3 +2,4 @@ discord~=1.0.1
 python-dotenv~=0.15.0
 SQLAlchemy~=1.3.23
 py3-validate-email
+psycopg2
