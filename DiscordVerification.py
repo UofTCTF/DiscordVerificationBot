@@ -51,6 +51,9 @@ async def on_message(message):
     if message.author == client.user:
         return
 
+    if message.channel.type != 'dm':
+        return
+
     user_id = str(message.author.id)
 
     if not user_exists(user_id):
