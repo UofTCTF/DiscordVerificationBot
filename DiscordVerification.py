@@ -79,9 +79,21 @@ async def on_message(message):
         else:
             await message.author.send("The code you have entered is invalid, please try again or request the code "
                                       "again.")
+    elif message.content[:8] == "!resend ":
+        email = message.content.split(' ')[1].strip()
+        if email_valid(email):
+            store_email(user_id, email)
+            if send_email(email, get_code(user_id)):
+                await message.author.send("A code has been sent to your email. "
+                                          "Please enter '!code' followed by your code.")
+            else:
+                await message.author.send("An email could not be sent to your email. Please contact us directly.")
+        else:
+            await message.author.send("Your email appears to be invalid/restricted. Please enter your email again.")
     elif message.content[:6] == "!help":
-        await message.author.send("!email {your email address} \n"
-                                  "!code {your verification code}")
+        await message.author.send("!email {your email address}: Submit your UofT email for verification. \n"
+                                  "!code {your verification code}: Enter the code sent to your UofT email. \n"
+                                  "!resend {your email address}: Request a new code to be sent to your UofT email")
     elif message.content == "":
         pass
     else:
@@ -100,6 +112,13 @@ def get_code(user_id):
     query = query.where(users.columns.id == user_id)
     result = connection.execute(query)
     return result.fetchall()[0].code
+
+
+def get_email(user_id):
+    query = db.select([users])
+    query = query.where(users.columns.id == user_id)
+    result = connection.execute(query)
+    return result.fetchall()[0].email
 
 
 def email_valid(email):
