@@ -51,15 +51,17 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    if not user_exists(str(message.author.id)):
+    user_id = str(message.author.id)
+
+    if not user_exists(user_id):
         await initiate(message.author)
         # await message.author.send('You do not seem to be a member of UofTCTF. Please join and try again.')
 
     if message.content[:7] == "!email ":
         email = message.content.split(' ')[1].strip()
         if email_valid(email):
-            store_email(message.author.id, email)
-            if send_email(email, get_code(message.author.id)):
+            store_email(user_id, email)
+            if send_email(email, get_code(user_id)):
                 await message.author.send("A code has been sent to your email. "
                                           "Please enter '!code' followed by your code.")
             else:
@@ -68,7 +70,7 @@ async def on_message(message):
             await message.author.send("Your email appears to be invalid/restricted. Please enter your email again.")
     elif message.content[:6] == "!code ":
         code = message.content.split(' ')[1].strip()
-        if code_valid(message.author.id, code):
+        if code_valid(user_id, code):
             await verify(message.author)
             await message.author.send("Your email has been validated successfully - welcome!")
         else:
@@ -116,7 +118,7 @@ def user_exists(user_id):
 
 def store_email(user_id, email):
     query = db.update(users).values(email=email)
-    query = query.where(users.columns.id == str(user_id))
+    query = query.where(users.columns.id == user_id)
     connection.execute(query)
 
 
