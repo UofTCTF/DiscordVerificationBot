@@ -19,7 +19,7 @@ GUILD = int(os.getenv('DISCORD_GUILD'))
 SENDER = os.getenv('EMAIL')
 PASSWORD = os.getenv('PASSWORD')
 SERVER = os.getenv('SERVER')
-PORT = os.getenv('PORT')
+PORT = os.getenv('SERVER_PORT')
 uri = os.getenv('DATABASE_URL')
 
 if uri.startswith("postgres://"):
