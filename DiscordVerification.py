@@ -116,7 +116,7 @@ def user_exists(user_id):
 
 def store_email(user_id, email):
     query = db.update(users).values(email=email)
-    query = query.where(users.columns.id == user_id)
+    query = query.where(users.columns.id == str(user_id))
     connection.execute(query)
 
 
