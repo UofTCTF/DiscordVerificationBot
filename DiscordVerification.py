@@ -138,14 +138,9 @@ def log():
 
 def send_email(email, code):
     try:
-        print(SERVER)
-        print(PORT)
         server = smtplib.SMTP(SERVER, PORT)
-        print(1)
         server.connect(SERVER, PORT)
-        print(2)
         server.starttls()
-        print(3)
         server.login(SENDER, PASSWORD)
         server.sendmail(SENDER, email, f"Your verification code is: {code}")
         server.quit()
