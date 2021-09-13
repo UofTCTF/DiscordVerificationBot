@@ -124,18 +124,16 @@ def get_email(user_id):
 def email_valid(email):
     if not validate_email(email, check_smtp=False):
         return False
-    if email.split("@")[1] != "mail.utoronto.ca":
+    if email[email.find('@') + 1:] != "mail.utoronto.ca":
         return False
     return True
 
 
 def user_exists(user_id):
     query = db.select([users])
+    query = query.where(users.columns.id == user_id)
     result = connection.execute(query)
-    for user in result:
-        if user_id == user[0]:
-            return True
-    return False
+    return result.first() is not None
 
 
 def store_email(user_id, email):
