@@ -51,7 +51,7 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    if message.channel.type != 'private':
+    if message.channel.type != discord.ChannelType.private:
         return
 
     user_id = str(message.author.id)
