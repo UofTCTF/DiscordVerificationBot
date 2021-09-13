@@ -137,12 +137,11 @@ def log():
 
 
 def send_email(email, code):
-    context = ssl._create_unverified_context()
     try:
         server = smtplib.SMTP(SERVER, PORT)
-        server.starttls(context=context)
         server.login(SENDER, PASSWORD)
         server.sendmail(SENDER, email, f"Your verification code is: {code}")
+        server.quit()
         return True
     except Exception as e:
         print(e)
