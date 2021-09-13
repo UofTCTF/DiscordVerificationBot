@@ -1,1 +1,1 @@
-worker: python DiscordVerification.py
+worker: python3 DiscordVerification.py
