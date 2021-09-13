@@ -20,9 +20,12 @@ SENDER = os.getenv('EMAIL')
 PASSWORD = os.getenv('PASSWORD')
 SERVER = os.getenv('SERVER')
 PORT = os.getenv('PORT')
-URI = os.getenv('DATABASE_URL')
+uri = os.getenv('DATABASE_URL')
 
-engine = db.create_engine(URI)
+if uri.startswith("postgres://"):
+    uri = uri.replace("postgres://", "postgresql://", 1)
+
+engine = db.create_engine(uri)
 connection = engine.connect()
 metadata = db.MetaData()
 users = db.Table('Users', metadata, autoload=True, autoload_with=engine)

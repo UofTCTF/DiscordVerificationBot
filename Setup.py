@@ -4,8 +4,10 @@ from dotenv import load_dotenv
 
 if __name__ == "__main__":
     load_dotenv()
-    URI = os.getenv("DATABASE_URL")
-    engine = db.create_engine(URI)
+    uri = os.getenv("DATABASE_URL")
+    if uri.startswith("postgres://"):
+        uri = uri.replace("postgres://", "postgresql://", 1)
+    engine = db.create_engine(uri)
     connection = engine.connect()
     metadata = db.MetaData()
     db.Table('Users', metadata,
