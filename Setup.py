@@ -1,8 +1,11 @@
 import os
 import sqlalchemy as db
+from dotenv import load_dotenv
 
 if __name__ == "__main__":
-    engine = db.create_engine(os.getenv("DATABASE_URL"))
+    load_dotenv()
+    URI = os.getenv("DATABASE_URL")
+    engine = db.create_engine(URI)
     connection = engine.connect()
     metadata = db.MetaData()
     db.Table('Users', metadata,
