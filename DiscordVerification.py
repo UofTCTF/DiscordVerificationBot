@@ -124,7 +124,7 @@ def get_email(user_id):
 def email_valid(email):
     if not validate_email(email, check_smtp=False):
         return False
-    if email.split("@")[1] != "mail.utoronto.ca":
+    if email[email.find('@') + 1:] != "mail.utoronto.ca":
         return False
     return True
 
