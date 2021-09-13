@@ -181,8 +181,8 @@ def get_guild():
 async def verify(user):
     guild = get_guild()
     member = guild.get_member(user.id)
-    var = discord.utils.get(guild.roles, name="Verified")
-    await member.add_roles(var)
+    role = discord.utils.get(guild.roles, name="verified")
+    await member.add_roles(role)
 
 
 if __name__ == "__main__":
