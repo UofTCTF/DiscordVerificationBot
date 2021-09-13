@@ -1,7 +1,8 @@
+import os
 import sqlalchemy as db
 
 if __name__ == "__main__":
-    engine = db.create_engine('sqlite:///site.db')
+    engine = db.create_engine(os.getenv("DATABASE_URI"))
     connection = engine.connect()
     metadata = db.MetaData()
     db.Table('Users', metadata,

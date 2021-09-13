@@ -10,13 +10,19 @@ from dotenv import load_dotenv
 
 from random import randrange
 
+import smtplib, ssl
 from validate_email import validate_email
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = int(os.getenv('DISCORD_GUILD'))
+SENDER = os.getenv('EMAIL')
+PASSWORD = os.getenv('PASSWORD')
+SERVER = os.getenv('SERVER')
+PORT = os.getenv('PORT')
+URI = os.getenv('DATABASE_URI')
 
-engine = db.create_engine('sqlite:///site.db')
+engine = db.create_engine(URI)
 connection = engine.connect()
 metadata = db.MetaData()
 users = db.Table('Users', metadata, autoload=True, autoload_with=engine)
@@ -32,8 +38,7 @@ async def on_member_join(member):
 
 @client.event
 async def on_ready():
-    for guild in client.guilds:
-        print(guild.name)
+    pass
 
 
 @client.event
@@ -48,12 +53,17 @@ async def on_message(message):
         email = message.content.split(' ')[1].strip()
         if email_valid(email):
             store_email(message.author.id, email)
-            await message.author.send("A code has been sent to your email. Please enter your code.")
+            if send_email(email, get_code(message.author.id)):
+                await message.author.send("A code has been sent to your email. "
+                                          "Please enter '!code' followed by your code.")
+            else:
+                await message.author.send("An email could not be sent to your email. Please contact us directly.")
         else:
             await message.author.send("Your email appears to be invalid/restricted. Please enter your email again.")
     elif message.content[:6] == "!code ":
         code = message.content.split(' ')[1].strip()
         if code_valid(message.author.id, code):
+            await verify(message.author)
             await message.author.send("Your email has been validated successfully - welcome!")
         else:
             await message.author.send("The code you have entered is invalid, please try again or request the code "
@@ -72,6 +82,13 @@ def code_valid(user_id, code):
     query = query.where(users.columns.id == user_id)
     result = connection.execute(query)
     return code == result.fetchall()[0].code
+
+
+def get_code(user_id):
+    query = db.select([users])
+    query = query.where(users.columns.id == user_id)
+    result = connection.execute(query)
+    return result.fetchall()[0].code
 
 
 def email_valid(email):
@@ -98,8 +115,8 @@ def store_email(user_id, email):
 
 
 async def initiate(member):
-    await member.send('To gain access to the server, please verify your UofT email. \n'
-                      'Enter "!email" followed by your UofT email, or "!help" for more commands.')
+    await member.send("To gain access to the server, please verify your UofT email. \n"
+                      "Enter '!email' followed by your UofT email, or '!help' for more commands.")
     if not user_exists(str(member.id)):
         query = db.insert(users).values(id=member.id, code=randrange(100000, 1000000))
         connection.execute(query)
@@ -111,6 +128,32 @@ def log():
     query = db.select([users])
     result = connection.execute(query)
     print(result.fetchall())
+
+
+def send_email(email, code):
+    context = ssl.create_default_context()
+    try:
+        server = smtplib.SMTP(SERVER, PORT)
+        server.starttls(context=context)  # Secure the connection
+        server.login(SENDER, PASSWORD)
+        server.sendmail(SENDER, email, f"Your verification code is: {code}")
+        return True
+    except Exception as e:
+        print(e)
+        return False
+
+
+def get_guild():
+    for guild in client.guilds:
+        if guild.id == GUILD:
+            return guild
+
+
+async def verify(user):
+    guild = get_guild()
+    member = guild.get_member(user.id)
+    var = discord.utils.get(guild.roles, name="Normies")
+    await member.add_roles(var)
 
 
 client.run(TOKEN)
