@@ -2,7 +2,7 @@ import os
 import sqlalchemy as db
 
 if __name__ == "__main__":
-    engine = db.create_engine(os.getenv("DATABASE_URI"))
+    engine = db.create_engine(os.getenv("DATABASE_URL"))
     connection = engine.connect()
     metadata = db.MetaData()
     db.Table('Users', metadata,

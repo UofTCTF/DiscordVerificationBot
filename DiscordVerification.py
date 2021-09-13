@@ -20,7 +20,7 @@ SENDER = os.getenv('EMAIL')
 PASSWORD = os.getenv('PASSWORD')
 SERVER = os.getenv('SERVER')
 PORT = os.getenv('PORT')
-URI = os.getenv('DATABASE_URI')
+URI = os.getenv('DATABASE_URL')
 
 engine = db.create_engine(URI)
 connection = engine.connect()
