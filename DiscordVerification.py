@@ -62,9 +62,13 @@ async def on_message(message):
 
     if message.content[:7] == "!email ":
         email = message.content.split(' ')[1].strip()
-        if email_valid(email):
+        if not resendable(user_id):
+            await message.author.send("You have been blocked from requesting your verification code. "
+                                      "Please contact us directly.")
+        elif email_valid(email):
             store_email(user_id, email)
             if send_email(email, get_code(user_id)):
+                decrement_resends(user_id)
                 await message.author.send("A code has been sent to your email. "
                                           "Please enter '!code' followed by your code.")
             else:
@@ -73,17 +77,25 @@ async def on_message(message):
             await message.author.send("Your email appears to be invalid/restricted. Please enter your email again.")
     elif message.content[:6] == "!code ":
         code = message.content.split(' ')[1].strip()
-        if code_valid(user_id, code):
-            await verify(message.author)
-            await message.author.send("Your email has been validated successfully - welcome!")
+        if not attemptable(user_id):
+            await message.author.send("You have been blocked for too many attempts. Please contact us directly.")
         else:
-            await message.author.send("The code you have entered is invalid, please try again or request the code "
-                                      "again.")
+            decrement_attempts(user_id)
+            if code_valid(user_id, code):
+                await verify(message.author)
+                await message.author.send("Your email has been validated successfully - welcome!")
+            else:
+                await message.author.send("The code you have entered is invalid, please try again or request the code "
+                                          "again.")
     elif message.content[:8] == "!resend ":
         email = message.content.split(' ')[1].strip()
-        if email_valid(email):
+        if not resendable(user_id):
+            await message.author.send("You have been blocked from requesting your verification code. "
+                                      "Please contact us directly.")
+        elif email_valid(email):
             store_email(user_id, email)
             if send_email(email, get_code(user_id)):
+                decrement_resends(user_id)
                 await message.author.send("A code has been sent to your email. "
                                           "Please enter '!code' followed by your code.")
             else:
@@ -96,7 +108,7 @@ async def on_message(message):
                                   "!resend {your email address}: Request a new code to be sent to your UofT email")
     elif message.content == "":
         pass
-    else:
+    elif message.content[:1] == "!":
         await message.author.send("Command not recognized. Type '!help' for a list of commands.")
 
 
@@ -144,8 +156,32 @@ def store_email(user_id, email):
 
 async def initiate(member):
     if not user_exists(str(member.id)):
-        query = db.insert(users).values(id=member.id, code=randrange(100000, 1000000))
+        query = db.insert(users).values(id=member.id, code=randrange(100000, 1000000), resends=5, attempts=5)
         connection.execute(query)
+
+
+def decrement_resends(user_id):
+    query = db.select([users])
+    query = query.where(users.columns.id == user_id)
+    result = connection.execute(query)
+
+    resends = result.fetchall()[0].resends - 1
+    query = db.update(users).values(resends=resends)
+    query = query.where(users.columns.id == user_id)
+    connection.execute(query)
+    return resends
+
+
+def decrement_attempts(user_id):
+    query = db.select([users])
+    query = query.where(users.columns.id == user_id)
+    result = connection.execute(query)
+
+    attempts = result.fetchall()[0].attempts - 1
+    query = db.update(users).values(attempts=attempts)
+    query = query.where(users.columns.id == user_id)
+    connection.execute(query)
+    return attempts
 
 
 def log():
@@ -181,6 +217,24 @@ async def verify(user):
     member = guild.get_member(user.id)
     role = discord.utils.get(guild.roles, name="verified")
     await member.add_roles(role)
+
+
+def resendable(user_id):
+    query = db.select([users])
+    query = query.where(users.columns.id == user_id)
+    result = connection.execute(query)
+
+    resends = result.fetchall()[0].resends
+    return resends > 0
+
+
+def attemptable(user_id):
+    query = db.select([users])
+    query = query.where(users.columns.id == user_id)
+    result = connection.execute(query)
+
+    attempts = result.fetchall()[0].attempts
+    return attempts > 0
 
 
 if __name__ == "__main__":
