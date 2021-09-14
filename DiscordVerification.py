@@ -36,7 +36,7 @@ client = discord.Client(intents=intents)
 
 @client.event
 async def on_member_join(member):
-    await member.send("To gain access to the server, please verify your UofT email. \n"
+    await member.send("To gain access to UofTCTF, please verify your UofT email. \n"
                       "Enter '!email' followed by your UofT email, or '!help' for more commands.")
     await initiate(member)
 
@@ -235,6 +235,18 @@ def attemptable(user_id):
 
     attempts = result.fetchall()[0].attempts
     return attempts > 0
+
+
+async def sweep():
+    guild = client.get_guild(GUILD)
+    verified = discord.utils.get(guild.roles, name="verified")
+    for member in guild.members:
+        if member not in verified.members:
+            try:
+                await member.send("To gain access UofTCTF please verify your UofT email. \n"
+                                  "Enter '!email' followed by your UofT email, or '!help' for more commands.")
+            except Exception:
+                print(member)
 
 
 if __name__ == "__main__":
